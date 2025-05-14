@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Edukasi</title>
+  <title>Game Edukasi Pilihan Ganda</title>
   <style>
     body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
-    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     .hidden { display: none; }
     .timer { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #d00; }
     .feedback { font-size: 24px; margin-top: 10px; }
     .correct { color: green; }
     .wrong { color: red; }
-    input, button, textarea { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+    input[type="text"], textarea, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
     .question-card { background: #eef; padding: 15px; border-radius: 10px; }
     nav { margin-bottom: 20px; }
     nav button { width: 48%; margin: 1%; }
+    .options label { display: block; margin-bottom: 5px; }
   </style>
 </head>
 <body>
@@ -36,7 +37,7 @@
         <div class="timer" id="timer">Waktu: 100</div>
         <div class="question-card">
           <div id="questionText">Pertanyaan akan muncul di sini</div>
-          <input type="text" id="answerInput" placeholder="Jawaban kamu" />
+          <div class="options" id="optionsContainer"></div>
           <button onclick="submitAnswer()">Kirim Jawaban</button>
           <div id="feedback" class="feedback"></div>
         </div>
@@ -50,33 +51,7 @@
 
     <div id="teacherView" class="hidden">
       <h2>Dashboard Guru</h2>
-      <textarea id="questionJSON" rows="10" placeholder='{
-  "BUDI UTOMO": {
-    "question": "Mengapa Budi Utomo dianggap sebagai awal kebangkitan nasional di Indonesia?",
-    "answer": "Karena Budi Utomo adalah organisasi pertama yang menunjukkan kesadaran kebangsaan dalam bentuk organisasi modern, bukan perlawanan fisik seperti sebelumnya. Ia mengutamakan pendidikan dan kemajuan masyarakat sebagai alat perjuangan, yang menjadi dasar lahirnya semangat nasionalisme Indonesia.",
-    "description": "Budi Utomo adalah organisasi modern pertama di Indonesia yang fokus pada pendidikan dan kemajuan sosial. Didirikan pada 20 Mei 1908 oleh Dr. Soetomo dan mahasiswa STOVIA di Batavia. Anggotanya terdiri dari kaum terpelajar Jawa."
-  },
-  "SAREKAT ISLAM": {
-    "question": "Apa peran penting Sarekat Islam dalam perjuangan kemerdekaan Indonesia?",
-    "answer": "Sarekat Islam memperluas perjuangan rakyat dari sektor ekonomi ke politik dan menyatukan masyarakat dalam organisasi massa yang besar. Ini meningkatkan kesadaran politik rakyat dan membentuk dasar perlawanan yang lebih terorganisir terhadap penjajahan.",
-    "description": "Sarekat Islam (SI) awalnya didirikan oleh Haji Samanhudi sebagai organisasi dagang untuk membantu pedagang pribumi melawan dominasi pedagang Tionghoa. Di bawah H.O.S. Tjokroaminoto, SI berkembang menjadi organisasi politik dan sosial yang besar dan berpengaruh."
-  },
-  "INDISCHE PARTIJ": {
-    "question": "Mengapa Indische Partij dianggap sebagai partai yang radikal pada masanya?",
-    "answer": "Karena mereka secara terbuka menuntut kemerdekaan dan menyuarakan kritik tajam terhadap pemerintahan kolonial, termasuk lewat tulisan Suwardi Suryaningrat yang terkenal, 'Als Ik Een Nederlander Was'. Sikap ini sangat berani dan tidak biasa saat itu, sehingga membuat pemerintah kolonial langsung menindak mereka dengan pengasingan.",
-    "description": "Didirikan oleh Tiga Serangkai (Douwes Dekker, Dr. Cipto Mangunkusumo, dan Suwardi Suryaningrat). Indische Partij adalah partai politik pertama yang secara terang-terangan menyuarakan kemerdekaan dari Belanda dan mendorong persatuan semua warga Hindia Belanda, tanpa membedakan ras atau golongan."
-  },
-  "SUMPAH PEMUDA": {
-    "question": "Apa makna penting dari Sumpah Pemuda bagi bangsa Indonesia?",
-    "answer": "Sumpah Pemuda menyatukan semua golongan pemuda dalam satu identitas bangsa Indonesia, bahasa Indonesia, dan tanah air Indonesia. Ini menjadi dasar persatuan nasional dan memperkuat gerakan menuju kemerdekaan.",
-    "description": "Sumpah Pemuda adalah hasil Kongres Pemuda II yang diikuti oleh berbagai organisasi pemuda. Sumpah ini menegaskan semangat persatuan di antara pemuda dari berbagai suku, agama, dan daerah."
-  },
-  "PNI": {
-    "question": "Bagaimana strategi PNI berbeda dari organisasi sebelumnya dalam memperjuangkan kemerdekaan?",
-    "answer": "PNI lebih fokus pada gerakan politik yang terorganisir dengan struktur partai modern dan propaganda yang sistematis. Soekarno menggunakan pidato, tulisan, dan pendidikan politik untuk membangkitkan nasionalisme rakyat secara luas dan menyusun strategi perjuangan jangka panjang menuju kemerdekaan.",
-    "description": "PNI didirikan oleh Ir. Soekarno sebagai partai yang bertujuan mencapai Indonesia merdeka. PNI menggunakan pendidikan politik dan organisasi untuk menyadarkan rakyat terhadap hak-hak mereka sebagai bangsa yang terjajah."
-  }
-}'></textarea>
+      <textarea id="questionJSON" rows="15" placeholder="Masukkan data JSON"></textarea>
       <button onclick="updateBank()">Update Pertanyaan</button>
       <p id="saveStatus"></p>
     </div>
@@ -85,29 +60,37 @@
   <script>
     let questionBank = {
       "BUDI UTOMO": {
-        question: "Mengapa Budi Utomo dianggap sebagai awal kebangkitan nasional di Indonesia?",
-        answer: "Karena Budi Utomo adalah organisasi pertama yang menunjukkan kesadaran kebangsaan dalam bentuk organisasi modern, bukan perlawanan fisik seperti sebelumnya. Ia mengutamakan pendidikan dan kemajuan masyarakat sebagai alat perjuangan, yang menjadi dasar lahirnya semangat nasionalisme Indonesia.",
-        description: "Budi Utomo adalah organisasi modern pertama di Indonesia yang fokus pada pendidikan dan kemajuan sosial. Didirikan pada 20 Mei 1908 oleh Dr. Soetomo dan mahasiswa STOVIA di Batavia. Anggotanya terdiri dari kaum terpelajar Jawa."
-      },
-      "SAREKAT ISLAM": {
-        question: "Apa peran penting Sarekat Islam dalam perjuangan kemerdekaan Indonesia?",
-        answer: "Sarekat Islam memperluas perjuangan rakyat dari sektor ekonomi ke politik dan menyatukan masyarakat dalam organisasi massa yang besar. Ini meningkatkan kesadaran politik rakyat dan membentuk dasar perlawanan yang lebih terorganisir terhadap penjajahan.",
-        description: "Sarekat Islam (SI) awalnya didirikan oleh Haji Samanhudi sebagai organisasi dagang untuk membantu pedagang pribumi melawan dominasi pedagang Tionghoa. Di bawah H.O.S. Tjokroaminoto, SI berkembang menjadi organisasi politik dan sosial yang besar dan berpengaruh."
-      },
-      "INDISCHE PARTIJ": {
-        question: "Mengapa Indische Partij dianggap sebagai partai yang radikal pada masanya?",
-        answer: "Karena mereka secara terbuka menuntut kemerdekaan dan menyuarakan kritik tajam terhadap pemerintahan kolonial, termasuk lewat tulisan Suwardi Suryaningrat yang terkenal, 'Als Ik Een Nederlander Was'. Sikap ini sangat berani dan tidak biasa saat itu, sehingga membuat pemerintah kolonial langsung menindak mereka dengan pengasingan.",
-        description: "Didirikan oleh Tiga Serangkai (Douwes Dekker, Dr. Cipto Mangunkusumo, dan Suwardi Suryaningrat). Indische Partij adalah partai politik pertama yang secara terang-terangan menyuarakan kemerdekaan dari Belanda dan mendorong persatuan semua warga Hindia Belanda, tanpa membedakan ras atau golongan."
+        question: "Organisasi yang didirikan pada 20 Mei 1908 oleh para pelajar STOVIA dan menjadi pelopor pergerakan nasional adalah...",
+        options: {
+          A: "Sarekat Islam",
+          B: "Indische Partij",
+          C: "Budi Utomo",
+          D: "Partai Nasional Indonesia"
+        },
+        correct: "C",
+        description: "Budi Utomo didirikan pada 1908 dan menjadi organisasi pertama yang memperjuangkan kemajuan bangsa melalui pendidikan, bukan perlawanan fisik."
       },
       "SUMPAH PEMUDA": {
-        question: "Apa makna penting dari Sumpah Pemuda bagi bangsa Indonesia?",
-        answer: "Sumpah Pemuda menyatukan semua golongan pemuda dalam satu identitas bangsa Indonesia, bahasa Indonesia, dan tanah air Indonesia. Ini menjadi dasar persatuan nasional dan memperkuat gerakan menuju kemerdekaan.",
-        description: "Sumpah Pemuda adalah hasil Kongres Pemuda II yang diikuti oleh berbagai organisasi pemuda. Sumpah ini menegaskan semangat persatuan di antara pemuda dari berbagai suku, agama, dan daerah."
+        question: "Apa isi utama dari Sumpah Pemuda yang diikrarkan tahun 1928?",
+        options: {
+          A: "Menuntut kemerdekaan dari penjajah Belanda",
+          B: "Persatuan bangsa, tanah air, dan bahasa Indonesia",
+          C: "Pembentukan partai politik pemuda",
+          D: "Penggunaan bahasa daerah dalam pergerakan nasional"
+        },
+        correct: "B",
+        description: "Sumpah Pemuda menegaskan identitas nasional melalui satu tanah air, satu bangsa, dan satu bahasa: Indonesia."
       },
-      "PNI": {
-        question: "Bagaimana strategi PNI berbeda dari organisasi sebelumnya dalam memperjuangkan kemerdekaan?",
-        answer: "PNI lebih fokus pada gerakan politik yang terorganisir dengan struktur partai modern dan propaganda yang sistematis. Soekarno menggunakan pidato, tulisan, dan pendidikan politik untuk membangkitkan nasionalisme rakyat secara luas dan menyusun strategi perjuangan jangka panjang menuju kemerdekaan.",
-        description: "PNI didirikan oleh Ir. Soekarno sebagai partai yang bertujuan mencapai Indonesia merdeka. PNI menggunakan pendidikan politik dan organisasi untuk menyadarkan rakyat terhadap hak-hak mereka sebagai bangsa yang terjajah."
+      "INDISCHE PARTIJ": {
+        question: "Mengapa Indische Partij dianggap sebagai partai politik yang radikal?",
+        options: {
+          A: "Menolak pendidikan Barat",
+          B: "Menyuarakan kemerdekaan secara terbuka dan tanpa kompromi",
+          C: "Mendorong perjuangan fisik terhadap Belanda",
+          D: "Fokus pada kegiatan sosial budaya saja"
+        },
+        correct: "B",
+        description: "Indische Partij berani mengkritik kolonialisme secara terbuka dan menyerukan kemerdekaan, hal yang belum pernah dilakukan organisasi sebelumnya."
       }
     };
 
@@ -131,8 +114,18 @@
       if (questionBank[code]) {
         currentCode = code;
         document.getElementById("questionText").textContent = questionBank[code].question;
+        const options = questionBank[code].options;
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+        for (let key in options) {
+          const label = document.createElement("label");
+          label.innerHTML = `<input type="radio" name="option" value="${key}"> ${key}. ${options[key]}`;
+          container.appendChild(label);
+        }
         document.getElementById("codeInputSection").classList.add("hidden");
         document.getElementById("questionSection").classList.remove("hidden");
+        document.getElementById("descriptionSection").classList.add("hidden");
+        document.getElementById("feedback").textContent = "";
         startTimer();
       } else {
         alert("Kode tidak ditemukan");
@@ -153,17 +146,25 @@
     }
 
     function submitAnswer() {
-      const userAnswer = document.getElementById("answerInput").value.trim();
-      const correctAnswer = questionBank[currentCode].answer;
+      const selected = document.querySelector('input[name="option"]:checked');
       const feedback = document.getElementById("feedback");
 
-      if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+      if (!selected) {
+        alert("Silakan pilih jawaban terlebih dahulu.");
+        return;
+      }
+
+      const answer = selected.value;
+      const correct = questionBank[currentCode].correct;
+
+      if (answer === correct) {
         feedback.textContent = "Benar!";
         feedback.className = "feedback correct";
       } else {
         feedback.textContent = "Salah!";
         feedback.className = "feedback wrong";
       }
+
       clearInterval(timer);
       showDescription();
     }
@@ -187,4 +188,4 @@
     showStudentView();
   </script>
 </body>
-          </html>
+</html>
